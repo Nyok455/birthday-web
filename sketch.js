@@ -421,10 +421,8 @@ function keyTyped() {
   if(wishesModalOn) {
     if (keyCode===ENTER) {
       if(wishesInput.trim().length>0) {
-        let link = document.createElement('a');
-        link.href = `mailto:email@example.com?subject=Birthday%20Wish&body=${encodeURIComponent(wishesInput)}`;
-        link.target='_blank';
-        link.click();
+        // Open WhatsApp with prefilled message
+        window.open('https://wa.me/211917854654?text=' + encodeURIComponent(wishesInput), '_blank');
       }
       wishesModalOn=false;wishesInput=''; return false;
     }
