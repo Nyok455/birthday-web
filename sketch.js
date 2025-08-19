@@ -209,7 +209,7 @@ function drawWishMsg() {
   }
 }
 function drawWithLove() {
-  let msg = 'Happy Birthday, Achai! Distance may keep us apart, but nothing can stop me from sending you all my love and warm hugs. I hope today reminds you of how beautiful and special you are.';
+  let msg = 'Happy Birthday, Achai! Distance may keep us apart, But I will still wishes you "all my love and warm hugs" . I hope today reminds you of how beautiful and special you are.';
   fill(255,220,240); textSize(25); textAlign(CENTER,CENTER);
   let y = HEIGHT/2+138;
   let wrapLines = wrapTextLines(msg, WIDTH-120); // leave margin
@@ -218,7 +218,7 @@ function drawWithLove() {
   }
   fill(255,200,230);
   textSize(28);
-  text('With all my love',WIDTH/2,y+wrapLines.length*31+8);
+  text('Enjoy your Lovely Day',WIDTH/2,y+wrapLines.length*31+8);
 }
 // Helper for word-wrapping text in canvas
 function wrapTextLines(str, maxWidth) {
@@ -336,7 +336,7 @@ function drawStartOverlay() {
   noStroke(); fill(90,15,70); textAlign(CENTER,CENTER); textSize(33);
   text('Click to Start the Magic!', WIDTH/2, HEIGHT/2-16);
   textSize(22); fill(133,128,180);
-  text('Music & Animation will begin 🎵', WIDTH/2, HEIGHT/2+29);
+  text('Music & Party will begin 🎵', WIDTH/2, HEIGHT/2+29);
 }
 
 function mousePressed() {
