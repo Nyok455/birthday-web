@@ -208,9 +208,34 @@ function drawWishMsg() {
     balloons.push({x:WIDTH/2, y:184, vx:random(-2,2), vy:-random(1,2), t:0, kind:'wish', color:color(180,226,255,180)});
   }
 }
-function drawWithLove(){
-  fill(255,200,230);textSize(34);textAlign(CENTER,CENTER);
-  text('With all my love',WIDTH/2,HEIGHT/2+186);
+function drawWithLove() {
+  let msg = 'Happy Birthday, Achai! Distance may keep us apart, but nothing can stop me from sending you all my love and warm hugs. I hope today reminds you of how beautiful and special you are.';
+  fill(255,220,240); textSize(25); textAlign(CENTER,CENTER);
+  let y = HEIGHT/2+138;
+  let wrapLines = wrapTextLines(msg, WIDTH-120); // leave margin
+  for(let i=0; i<wrapLines.length; i++) {
+    text(wrapLines[i], WIDTH/2, y+i*30);
+  }
+  fill(255,200,230);
+  textSize(28);
+  text('With all my love',WIDTH/2,y+wrapLines.length*31+8);
+}
+// Helper for word-wrapping text in canvas
+function wrapTextLines(str, maxWidth) {
+  textSize(25);
+  let words = str.split(' ');
+  let lines = [], line = '';
+  for(let n=0; n<words.length; n++) {
+    let testLine = line + words[n] + ' ';
+    if (textWidth(testLine) > maxWidth && n > 0) {
+      lines.push(line.trim());
+      line = words[n] + ' ';
+    } else {
+      line = testLine;
+    }
+  }
+  lines.push(line.trim());
+  return lines;
 }
 function drawHearts() {
   noStroke();
