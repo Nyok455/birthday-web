@@ -266,13 +266,18 @@ function drawRingHearts(){
       let c=color(255,
         120+84*e*pulse*random(0.7,1.0),
         150+110*e*pulse*random(0.8,1.0),alpha*random(0.8,1));
-      push(); noStroke(); fill(c);
       let {x,y}=ringHearts[i];
-      ellipse(x-s*0.5,y-s*0.41,s*1.08,s*1.03); ellipse(x+s*0.5,y-s*0.41,s*1.07,s*1.03);
-      triangle(x-s,y,x+s,y,x,y+s*1.13);
-      pop();
+      drawMiniHeart(x, y, s, c);
     }
   }
+}
+// Draws a mini heart at (x, y) of size s and color c
+function drawMiniHeart(x, y, s, c) {
+  push(); noStroke(); fill(c);
+  ellipse(x-s*0.5, y-s*0.3, s, s);
+  ellipse(x+s*0.5, y-s*0.3, s, s);
+  triangle(x-s, y, x+s, y, x, y+s*0.95);
+  pop();
 }
 function drawCake(){
   let cx = WIDTH/2, cy = HEIGHT/2+46;
@@ -392,19 +397,21 @@ function drawExitModal() {
   text('Goodbye!\nReload page to restart.',WIDTH/2,HEIGHT/2);
 }
 function drawSongModal() {
-  fill(0,0,0,182); rect(0,0,WIDTH,HEIGHT);
+  fill(0,0,0,197); rect(0,0,width,height);
   fill(255, 249, 254); stroke(200,140,255,90); strokeWeight(3);
-  rect(WIDTH/2-200, HEIGHT/2-168, 400, 312,30);
+  let modalH = 440;
+  rect(width/2-220, height/2-modalH/2, 440, modalH, 32);
   noStroke(); fill(40,20,45); textAlign(CENTER,CENTER); textSize(34);
-  text('Choose Birthday Song', WIDTH/2, HEIGHT/2-122);
+  text('Choose Birthday Song', width/2, height/2-modalH/2+55);
+  let songBoxH = 72;
   for (let i=0;i<SONGS.length;i++) {
     fill(SONGS[i].color); stroke(180,130,180,100); strokeWeight(2);
-    rect(WIDTH/2-152, HEIGHT/2-56+i*66, 294, 56, 16);
-    noStroke();fill(65,20,60); textSize(24);
-    text(SONGS[i].name, WIDTH/2, HEIGHT/2-28+ i*66);
+    rect(width/2-158, height/2-65 + i*songBoxH, 316, songBoxH-10, 18);
+    noStroke();fill(65,20,60); textSize(26);
+    text(SONGS[i].name, width/2, height/2-65 + i*songBoxH + (songBoxH-10)/2);
   }
-  fill(80,60,130,80); noStroke();
-  textSize(16); text('ESC to close',WIDTH/2,HEIGHT/2+139);
+  fill(80,60,130,92); noStroke();
+  textSize(15); text('ESC to close',width/2,height/2+modalH/2-34);
 }
 function drawWishesModal() {
   fill(220,210,245,238); rect(0,0,width,height);
@@ -414,6 +421,7 @@ function drawWishesModal() {
   text('Type your birthday wish below! (ENTER to send!)',width/2,height/2-44);
   fill(240,250,220); stroke(160,150,205,80); rect(width/2-130,height/2+8,260,48,13);
   noStroke(); textAlign(CENTER,CENTER); textSize(22);
+  // Wish input
   if(wishesInput.length === 0 && wishesPlaceholder) {
     let fadeVal = 160 + 70 * Math.abs(Math.sin(millis()/450));
     fill(120,122,185,fadeVal);
@@ -422,7 +430,11 @@ function drawWishesModal() {
     fill(40,20,55);
     text(wishesInput || ' ', width/2, height/2+33);
   }
-  // Draw Back button below field
+  // Textbox click/focus for mobile
+  if(mouseIsPressed && mouseY>height/2+8 && mouseY<height/2+56) {
+    wishesPlaceholder = false;
+  }
+  // Back button below field
   let btnW=110, btnH=38, btnX=width/2-btnW/2, btnY=height/2+55;
   fill(190,160,214,215); stroke(128,74,160,150); strokeWeight(2);
   rect(btnX,btnY,btnW,btnH,11);
@@ -439,7 +451,7 @@ function keyTyped() {
     if(wishesPlaceholder) wishesPlaceholder = false;
     if (keyCode===ENTER) {
       if(wishesInput.trim().length>0) {
-        window.open('https://wa.me/211912345678?text=' + encodeURIComponent(wishesInput), '_blank');
+        window.open('https://wa.me/211917854654?text=' + encodeURIComponent(wishesInput), '_blank');
       }
       wishesModalOn=false; wishesInput=''; wishesPlaceholder=true; return false;
     }
