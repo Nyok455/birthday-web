@@ -327,7 +327,7 @@ function drawUIButtons() {
 }
 function doReplay() { resetAll(); if(mainSong.isPlaying()) mainSong.stop(); for(let s of songObjs) s.stop(); isSongPlaying=false; if (!mainSong.isPlaying()) { mainSong.play(); isSongPlaying=true; } }
 function doExit() { exitModalOn = true; for(let s of songObjs) s.stop(); mainSong.stop(); isSongPlaying=false; }
-function doWishes() { wishesInput=''; wishesModalOn=true; }
+function doWishes() { wishesInput=''; wishesModalOn=true; wishesPlaceholder=true; }
 function doFun() { chooseSongModalOn=true; }
 function drawStartOverlay() {
   fill(0,0,0,205); rect(0,0,WIDTH,HEIGHT);
@@ -381,7 +381,7 @@ function mousePressed() {
 }
 function keyPressed(){
   if(exitModalOn && (key==='Escape'||key==='q')) {exitModalOn=false;}
-  if(wishesModalOn && (key==='Escape'||key==='q')) {wishesModalOn=false;wishesInput='';}
+  if(wishesModalOn && (key==='Escape'||key==='q')) {wishesModalOn=false; wishesInput=''; wishesPlaceholder=true;}
   if(chooseSongModalOn && (key==='Escape'||key==='q')) {chooseSongModalOn=false;}
 }
 function drawExitModal() {
@@ -407,24 +407,41 @@ function drawSongModal() {
   textSize(16); text('ESC to close',WIDTH/2,HEIGHT/2+139);
 }
 function drawWishesModal() {
-  fill(220,210,245,238); rect(0,0,WIDTH,HEIGHT);
+  fill(220,210,245,238); rect(0,0,width,height);
   fill(70,20,30,220); stroke(170,120,210,85); strokeWeight(3);
-  rect(WIDTH/2-242,HEIGHT/2-72,484,136,24);
+  rect(width/2-242,height/2-72,484,136,24);
   noStroke(); fill(55,27,50); textAlign(CENTER,CENTER); textSize(25);
-  text('Type your birthday wish below! (ENTER to send!)',WIDTH/2,HEIGHT/2-44);
-  fill(240,250,220); stroke(160,150,205,80); rect(WIDTH/2-130,HEIGHT/2+8,260,48,13);
-  noStroke(); fill(40,20,55); textAlign(CENTER,CENTER); textSize(22);
-  text(wishesInput||' ',WIDTH/2,HEIGHT/2+33);
-  textSize(15); fill(90,27,55); text('(Press ESC to cancel)',WIDTH/2,HEIGHT/2+78);
+  text('Type your birthday wish below! (ENTER to send!)',width/2,height/2-44);
+  fill(240,250,220); stroke(160,150,205,80); rect(width/2-130,height/2+8,260,48,13);
+  noStroke(); textAlign(CENTER,CENTER); textSize(22);
+  if(wishesInput.length === 0 && wishesPlaceholder) {
+    let fadeVal = 160 + 70 * Math.abs(Math.sin(millis()/450));
+    fill(120,122,185,fadeVal);
+    text('Write your wishes', width/2, height/2+33);
+  } else {
+    fill(40,20,55);
+    text(wishesInput || ' ', width/2, height/2+33);
+  }
+  // Draw Back button below field
+  let btnW=110, btnH=38, btnX=width/2-btnW/2, btnY=height/2+55;
+  fill(190,160,214,215); stroke(128,74,160,150); strokeWeight(2);
+  rect(btnX,btnY,btnW,btnH,11);
+  noStroke(); fill(255); textSize(20);
+  text('Back', width/2, btnY+btnH/2+2);
+  // Hint
+  textSize(14); fill(90,27,55); text('(ESC or Back closes)',width/2,btnY+btnH+20);
+  if(mouseIsPressed && mouseX>btnX && mouseX<btnX+btnW && mouseY>btnY && mouseY<btnY+btnH && wishesModalOn) {
+    wishesModalOn = false; wishesInput=''; wishesPlaceholder=true;
+  }
 }
 function keyTyped() {
   if(wishesModalOn) {
+    if(wishesPlaceholder) wishesPlaceholder = false;
     if (keyCode===ENTER) {
       if(wishesInput.trim().length>0) {
-        // Open WhatsApp with prefilled message
-        window.open('https://wa.me/211917854654?text=' + encodeURIComponent(wishesInput), '_blank');
+        window.open('https://wa.me/211912345678?text=' + encodeURIComponent(wishesInput), '_blank');
       }
-      wishesModalOn=false;wishesInput=''; return false;
+      wishesModalOn=false; wishesInput=''; wishesPlaceholder=true; return false;
     }
     if(keyCode===BACKSPACE) wishesInput=wishesInput.slice(0,-1);
     else if(key.length===1 && wishesInput.length<80) wishesInput+=key;
