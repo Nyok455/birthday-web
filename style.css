@@ -1,0 +1,72 @@
+body {
+  margin: 0;
+  background: #000;
+  overflow: hidden;
+}
+canvas {
+  display: block;
+  margin: 0 auto;
+  border-radius: 12px;
+  box-shadow: 0 0 24px 0 rgba(40,0,60,0.2);
+}
+/* Canvas UI buttons */
+.button-canvas {
+  position: absolute;
+  right: 40px;
+  top: 42px;
+  background: #181a4c;
+  color: #fff;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 12px;
+  font-size: 21px;
+  cursor: pointer;
+  margin-top: 12px;
+  box-shadow: 0 1px 6px #1111;
+  opacity: 0.94;
+  user-select: none;
+  transition: background 0.15s, opacity 0.1s;
+}
+.button-canvas:hover {
+  background: #302f7a;
+  opacity: 1;
+}
+.modal-backdrop {
+  position: absolute;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0,0,0,0.63);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-inner {
+  background: #fff9fe;
+  border-radius: 20px;
+  padding: 38px 35px 26px 35px;
+  box-shadow: 0 4px 32px #a139a055;
+  min-width: 270px;
+  text-align: center;
+}
+.song-btn {
+  display: block;
+  font-size: 22px;
+  border-radius: 14px;
+  outline: none;
+  padding: 22px 0px;
+  margin: 18px 0 10px 0;
+  border: none;
+  background: linear-gradient(90deg,#f7b2cd,#ffe09e 88%);
+  color: #492138;
+  cursor: pointer;
+  box-shadow: 0 2px 12px #fbd2ff77;
+  font-family: inherit;
+  font-weight: bold;
+  opacity: 0.94;
+  transition: background 0.16s, color 0.11s;
+}
+.song-btn:hover {
+  background: linear-gradient(90deg,#ffe09e 12%,#f8a2e8);
+  color: #933742;
+  opacity: 1;
+}
