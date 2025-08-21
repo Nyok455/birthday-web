@@ -9,15 +9,15 @@ const RAINBOW = [
 const SONGS = [
   {name: 'Birthday Song 1', file: 'song1.mp3', color: '#ffe09e'},
   {name: 'Birthday Song 2', file: 'song2.mp3', color: '#a9f5e4'},
-  {name: 'Birthday Song 3', file: 'song3.mp3', color: '#e1bafd'},
-  {name: 'Birthday Song 4', file: 'song5.mp3', color: '#ffb5b5'}
+  {name: 'Birthday Song 3', file: 'song7.mp3', color: '#e1bafd'},
+  {name: 'Vibes', file: 'MainSong.mp3', color: '#ffb5b5'}
 ];
 
 let started=false;
 let stage = 0, t0 = 0, substageT0=0;
 let matrixCols = [];
 let matrixAlpha = 200, matrixColsCount=44; // a little less, but each column wider
-let countdown = 3;
+let countdown = 5;
 let dissolveParticles = [],ringHearts = [], mainHearts = [], risingHearts = [], confetti = [], cakeParticles = [], balloons = [];
 let songModal = false, lastPlayedSongIdx = -1;
 let mainSong, songObjs = [], isSongPlaying = false;
@@ -27,9 +27,13 @@ let funModalOn = false, exitModalOn = false, wishesModalOn = false, chooseSongMo
 const COUNTDOWN_DURATION = 3600; // slower (3.6s)
 const BDAY_FADE = 3800, WISH_FADE = 3500; // slower text in+out
 let seqTime=0, showButtons = false;
+let dropdownOpen = false;
+let menuIconX = WIDTH - 50;
+let menuIconY = 30;
+let menuIconSize = 40;
 
 function preload() {
-  mainSong = loadSound('MainSong.mp3');
+  mainSong = loadSound('song6.mp3');
   for (const s of SONGS) songObjs.push(loadSound(s.file));
 }
 
@@ -41,7 +45,7 @@ function setup() {
     {label:'Replay', y:38, color:'#2b9e4b', fn:doReplay},
     {label:'Exit', y:90, color:'#c03538', fn:doExit},
     {label:'Wishes', y:142, color:'#298be7', fn:doWishes},
-    {label:'Little Fun', y:194, color:'#ad49d3', fn:doFun}
+    {label:'Extra Party', y:194, color:'#ad49d3', fn:doFun}
   ];
   resetAll();
 }
@@ -49,7 +53,7 @@ function setup() {
 function resetAll() {
   t0 = millis();
   seqTime = 0;
-  stage = 0; countdown = 3; substageT0 = millis();
+  stage = 0; countdown = 5; substageT0 = millis();
   matrixCols = [];
   // Matrix: more cinematic, larger text & gaps
   let colCharSize = 28; // larger
@@ -104,29 +108,180 @@ function draw() {
   if(wishesModalOn) drawWishesModal();
 }
 function drawMatrix() {
+  // Define the message exactly as you want it to appear
+  const message = [
+    "H", "A", "P", "P", "Y", "", 
+    "B", "I", "R", "T", "H", "D", "A", "Y", "",
+    "A", "C", "H", "A", "I", "",
+    "0", "1", ".", "0", "9", ".", "2", "0", "0", "4"
+  ];
+  
+  // Define color variations (red-pink-white)
+  const messageColors = [
+    [255, 180, 200], // Light pink
+    [255, 150, 180], // Medium pink
+    [255, 120, 160], // Darker pink
+    [255, 100, 140], // Red-pink
+    [255, 200, 220], // Very light pink
+    [255, 220, 230], // Almost white with pink tint
+    [255, 240, 245]  // Nearly white
+  ];
+  
+  // Initialize message state if not exists
+  if (typeof window.messageState === 'undefined') {
+    window.messageState = {
+      lastAppearance: 0,
+      isVisible: false,
+      duration: 12000, // 6 seconds visible
+      pauseTime: 1000, // 5 seconds hidden
+      columns: []
+    };
+    
+    // Create message columns
+    for (let i = 0; i < matrixColsCount; i += 2) {
+      if (i < matrixColsCount) {
+        window.messageState.columns.push({
+          x: matrixCols[i].x,
+          y: -HEIGHT - random(100, 300),
+          speed: 1.2, // Fixed speed for all message columns
+          active: false,
+          charColors: []
+        });
+      }
+    }
+  }
+  
+  let state = window.messageState;
+  let currentTime = millis();
+  
+  // Simple timing control - toggle between visible and hidden states
+  if (state.isVisible && currentTime - state.lastAppearance > state.duration) {
+    state.isVisible = false;
+    state.lastAppearance = currentTime;
+    
+    // Reset columns for next appearance
+    for (let col of state.columns) {
+      col.y = -HEIGHT - random(100, 600);
+      col.active = random() < 0.9; // 70% chance to be active next time
+      
+      // Generate new colors for next appearance
+      if (col.active) {
+        col.charColors = [];
+        for (let i = 0; i < message.length; i++) {
+          if (message[i] === "") {
+            col.charColors.push(null);
+          } else {
+            const colorIdx = floor(random(messageColors.length));
+            col.charColors.push(messageColors[colorIdx]);
+          }
+        }
+      }
+    }
+  } else if (!state.isVisible && currentTime - state.lastAppearance > state.pauseTime) {
+    state.isVisible = true;
+    state.lastAppearance = currentTime;
+  }
+  
+  // Draw regular matrix code (but don't draw over message columns when message is visible)
   for (let col of matrixCols) {
-    for (let eidx=0; eidx<col.entries.length; eidx++) {
+    // Skip drawing matrix code over message columns when message is visible
+    if (state.isVisible) {
+      let isMessageColumn = false;
+      for (let msgCol of state.columns) {
+        if (msgCol.active && abs(msgCol.x - col.x) < 10) {
+          isMessageColumn = true;
+          break;
+        }
+      }
+      if (isMessageColumn) continue;
+    }
+    
+    for (let eidx = 0; eidx < col.entries.length; eidx++) {
       let e = col.entries[eidx];
-      let t = eidx / (col.entries.length-1);
-      let head = (eidx==col.entries.length-1);
+      let t = eidx / (col.entries.length - 1);
+      let head = (eidx == col.entries.length - 1);
+      
       let c;
-      if (head && random()<0.75) c=color(250,240,255,225);
-      else if(head && random()<0.30) c=color(255,210,239,205);
-      else if(random()<.055) c=color(255,220,240,145+random(60));
-      else c=lerpColor(color(255,180-60*t,220-50*t), color(170,160+110*t,190+40*t), t*0.7+0.09*abs(sin(frameCount/27+col.x)));
+      if (head && random() < 0.75) c = color(250, 240, 255, 225);
+      else if (head && random() < 0.30) c = color(255, 210, 239, 205);
+      else if (random() < .055) c = color(255, 220, 240, 145 + random(60));
+      else c = lerpColor(color(255, 180 - 60 * t, 220 - 50 * t), color(170, 160 + 110 * t, 190 + 40 * t), t * 0.7 + 0.09 * abs(sin(frameCount / 27 + col.x)));
+      
       fill(c);
-      textSize(col.fontSz+(head?2:0));
+      textSize(col.fontSz + (head ? 2 : 0));
       let my = e.y;
+      
       text(e.ch, col.x, my);
-      e.y += col.speed*(1.03+0.46*sin(millis()/660+col.x));
-      if (e.y > HEIGHT+36) {
+      e.y += col.speed * (1.03 + 0.46 * sin(millis() / 660 + col.x));
+      
+      if (e.y > HEIGHT + 36) {
         e.y = random(-240, -20);
         e.ch = String.fromCharCode(random([...'0123456789abcdefghijklmnopqrstuvwxyz'.split('')]).charCodeAt(0));
       }
-      if (random()<0.042+0.03*head) e.ch = String.fromCharCode(random([...'0123456789abcdefghijklmnopqrstuvwxyz'.split('')]).charCodeAt(0));
+      
+      if (random() < 0.042 + 0.03 * head) {
+        e.ch = String.fromCharCode(random([...'0123456789abcdefghijklmnopqrstuvwxyz'.split('')]).charCodeAt(0));
+      }
     }
   }
-  fill(0,0,0,matrixAlpha+10); rect(0,0,WIDTH,HEIGHT);
+  
+  // Draw message when visible
+  if (state.isVisible) {
+    for (let col of state.columns) {
+      if (col.active) {
+        // Move column down
+        col.y += col.speed;
+        
+        // Calculate fade based on position
+        let fade = 1;
+        if (col.y < HEIGHT * 0.2) {
+          // Fade in at the top
+          fade = constrain((col.y + HEIGHT) / (HEIGHT * 1.2), 0, 1);
+        } else if (col.y > HEIGHT * 0.7) {
+          // Fade out at the bottom
+          fade = 1 - constrain((col.y - HEIGHT * 0.7) / (HEIGHT * 0.3), 0, 1);
+        }
+        
+        // Draw message with color variations
+        let yPos = col.y;
+        for (let i = 0; i < message.length; i++) {
+          if (message[i] === "") {
+            yPos += 30;
+            continue;
+          }
+          
+          const color = col.charColors[i];
+          let charAlpha = 255 * fade;
+          
+          if (i === 0 || message[i-1] === "") {
+            // Head character is brighter with glow
+            charAlpha = min(255, charAlpha * 1.3);
+            drawingContext.shadowBlur = 15;
+            drawingContext.shadowColor = `rgba(${color[0]}, ${color[1] - 50}, ${color[2] - 50}, 0.8)`;
+          } else {
+            drawingContext.shadowBlur = 8;
+            drawingContext.shadowColor = `rgba(${color[0]}, ${color[1] - 30}, ${color[2] - 30}, 0.5)`;
+          }
+          
+          fill(color[0], color[1], color[2], charAlpha);
+          textSize(28);
+          text(message[i], col.x, yPos);
+          yPos += 24;
+        }
+        
+        drawingContext.shadowBlur = 0;
+        
+        // Reset column if it goes off screen
+        if (col.y > HEIGHT + message.length * 24) {
+          col.y = -HEIGHT - random(100, 300);
+        }
+      }
+    }
+  }
+  
+  // Lighter dark overlay to maintain message visibility
+  fill(0, 0, 0, matrixAlpha - 40);
+  rect(0, 0, WIDTH, HEIGHT);
 }
 function drawCountdown() {
   let t = millis()-t0;
@@ -209,7 +364,7 @@ function drawWishMsg() {
   }
 }
 function drawWithLove() {
-  let msg = 'Happy Birthday, Achai! Distance may keep us apart, But I will still wishes you "all my love and warm hugs" . I hope today reminds you of how beautiful and special you are.';
+  let msg = 'Happy Birthday, Achai!, I wishes you a Happy Birthday with all my love and warm hugs. I hope today reminds you of how beautiful and special you are.';
   fill(255,220,240); textSize(25); textAlign(CENTER,CENTER);
   let y = HEIGHT/2+138;
   let wrapLines = wrapTextLines(msg, WIDTH-120); // leave margin
@@ -317,17 +472,45 @@ function drawBalloons(){
   balloons = balloons.filter(b=>b.y>-120);
 }
 function drawUIButtons() {
-  for (let idx=0;idx<uiButtons.length;idx++) {
-    let btn=uiButtons[idx];
-    let bx=WIDTH-138,by=btn.y,bw=112,bh=47;
-    fill(btn.color);
-    stroke(255,244,255,40);
-    rect(bx,by,bw,bh,11);
+  // Draw menu icon (hamburger)
+  fill(255, 200);
+  noStroke();
+  rect(menuIconX - menuIconSize/2, menuIconY - menuIconSize/2, menuIconSize, menuIconSize, 8);
+  
+  // Draw hamburger lines
+  stroke(60);
+  strokeWeight(3);
+  line(menuIconX - 10, menuIconY - 8, menuIconX + 10, menuIconY - 8);
+  line(menuIconX - 10, menuIconY, menuIconX + 10, menuIconY);
+  line(menuIconX - 10, menuIconY + 8, menuIconX + 10, menuIconY + 8);
+  noStroke();
+  
+  // Draw dropdown if open
+  if (dropdownOpen) {
+    // Background
+    fill(30, 40, 50, 230);
+    stroke(200, 200, 255, 100);
+    strokeWeight(2);
+    rect(menuIconX - 70, menuIconY + 25, 140, 200, 12);
     noStroke();
-    fill(255);
-    textAlign(CENTER,CENTER);
-    textSize(19);
-    text(btn.label,bx+bw/2,by+bh/2+1);
+    
+    // Draw buttons in dropdown
+    for (let idx = 0; idx < uiButtons.length; idx++) {
+      let btn = uiButtons[idx];
+      let by = menuIconY + 50 + idx * 45;
+      
+      // Button background
+      fill(btn.color);
+      stroke(255, 244, 255, 40);
+      rect(menuIconX - 65, by, 130, 38, 8);
+      noStroke();
+      
+      // Button text
+      fill(255);
+      textAlign(CENTER, CENTER);
+      textSize(15);
+      text(btn.label, menuIconX, by + 19);
+    }
   }
 }
 function doReplay() { resetAll(); if(mainSong.isPlaying()) mainSong.stop(); for(let s of songObjs) s.stop(); isSongPlaying=false; if (!mainSong.isPlaying()) { mainSong.play(); isSongPlaying=true; } }
@@ -346,17 +529,43 @@ function drawStartOverlay() {
 
 function mousePressed() {
   if(!started) {
-    started=true;
+    started = true;
     resetAll();
-    stage=0;
-    t0=millis();
-    substageT0=millis();
+    stage = 0;
+    t0 = millis();
+    substageT0 = millis();
     if (!mainSong.isPlaying()) {
       mainSong.play();
       isSongPlaying = true;
     }
     return;
   }
+  
+  // Check if menu icon was clicked
+  if (showButtons && dist(mouseX, mouseY, menuIconX, menuIconY) < menuIconSize/2) {
+    dropdownOpen = !dropdownOpen;
+    return;
+  }
+  
+  // Check dropdown buttons if open
+  if (dropdownOpen && showButtons) {
+    for(let idx = 0; idx < uiButtons.length; idx++) {
+      let btn = uiButtons[idx];
+      let by = menuIconY + 50 + idx * 45;
+      
+      if(mouseX > menuIconX - 65 && mouseX < menuIconX + 65 && 
+         mouseY > by && mouseY < by + 38) {
+        dropdownOpen = false;
+        btn.fn();
+        return;
+      }
+    }
+    // Click outside dropdown closes it
+    dropdownOpen = false;
+    return;
+  }
+  
+  // Existing modal handling code remains the same...
   if (chooseSongModalOn) {
     for(let i=0; i<SONGS.length; ++i){
       let rx=WIDTH/2-152,ry=HEIGHT/2-56+i*66;
@@ -373,21 +582,12 @@ function mousePressed() {
     }
     return;
   }
-  if (showButtons) {
-    for(let idx=0;idx<uiButtons.length;idx++) {
-      let btn=uiButtons[idx];
-      let bx=WIDTH-138,by=btn.y,bw=112,bh=47;
-      if(mouseX>bx && mouseX<bx+bw && mouseY>by && mouseY<by+bh) {
-        btn.fn();
-        return;
-      }
-    }
-  }
 }
 function keyPressed(){
   if(exitModalOn && (key==='Escape'||key==='q')) {exitModalOn=false;}
   if(wishesModalOn && (key==='Escape'||key==='q')) {wishesModalOn=false; wishesInput=''; wishesPlaceholder=true;}
   if(chooseSongModalOn && (key==='Escape'||key==='q')) {chooseSongModalOn=false;}
+  if(dropdownOpen && key === 'Escape') {dropdownOpen = false;} // Add this line
 }
 function drawExitModal() {
   fill(30,0,45,224); rect(0,0,WIDTH,HEIGHT);
