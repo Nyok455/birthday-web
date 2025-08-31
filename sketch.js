@@ -1,51 +1,74 @@
 // --- SETTINGS ---
-const WIDTH = 900, HEIGHT = 640;
-const NAME = 'Achai';
-const WISH = 'Wishing you a year full of joy and adventure!';
+const WIDTH = 900,
+  HEIGHT = 640;
+const NAME = "Achai";
+const WISH = "Wishing you a year full of joy and adventure!";
 const RAINBOW = [
-  [255,80,80],[255,150,80],[255,220,100],[120,220,120],
-  [100,180,255],[160,120,255],[240,120,200]
+  [255, 80, 80],
+  [255, 150, 80],
+  [255, 220, 100],
+  [120, 220, 120],
+  [100, 180, 255],
+  [160, 120, 255],
+  [240, 120, 200],
 ];
 const SONGS = [
-  {name: 'Birthday Song 1', file: 'song1.mp3', color: '#ffe09e'},
-  {name: 'Birthday Song 2', file: 'song2.mp3', color: '#a9f5e4'},
-  {name: 'Birthday Song 3', file: 'song7.mp3', color: '#e1bafd'},
-  {name: 'Vibes', file: 'MainSong.mp3', color: '#ffb5b5'}
+  { name: "Birthday Song 1", file: "song1.mp3", color: "#ffe09e" },
+  { name: "Birthday Song 2", file: "song2.mp3", color: "#a9f5e4" },
+  { name: "Keenan Te", file: "forever.mp3", color: "#e1bafd" },
+  { name: "Vibes", file: "MainSong.mp3", color: "#ffb5b5" },
 ];
 
-let started=false;
-let stage = 0, t0 = 0, substageT0=0;
+let started = false;
+let stage = 0,
+  t0 = 0,
+  substageT0 = 0;
 let matrixCols = [];
-let matrixAlpha = 200, matrixColsCount=44; // a little less, but each column wider
+let matrixAlpha = 200,
+  matrixColsCount = 44; // a little less, but each column wider
 let countdown = 5;
-let dissolveParticles = [],ringHearts = [], mainHearts = [], risingHearts = [], confetti = [], cakeParticles = [], balloons = [];
-let songModal = false, lastPlayedSongIdx = -1;
-let mainSong, songObjs = [], isSongPlaying = false;
-let wishesInput = '';
+let dissolveParticles = [],
+  ringHearts = [],
+  mainHearts = [],
+  risingHearts = [],
+  confetti = [],
+  cakeParticles = [],
+  balloons = [];
+let songModal = false,
+  lastPlayedSongIdx = -1;
+let mainSong,
+  songObjs = [],
+  isSongPlaying = false;
+let wishesInput = "";
 let uiButtons = [];
-let funModalOn = false, exitModalOn = false, wishesModalOn = false, chooseSongModalOn = false;
+let funModalOn = false,
+  exitModalOn = false,
+  wishesModalOn = false,
+  chooseSongModalOn = false;
 const COUNTDOWN_DURATION = 3600; // slower (3.6s)
-const BDAY_FADE = 3800, WISH_FADE = 3500; // slower text in+out
-let seqTime=0, showButtons = false;
+const BDAY_FADE = 3800,
+  WISH_FADE = 3500; // slower text in+out
+let seqTime = 0,
+  showButtons = false;
 let dropdownOpen = false;
 let menuIconX = WIDTH - 50;
 let menuIconY = 30;
 let menuIconSize = 40;
 
 function preload() {
-  mainSong = loadSound('song6.mp3');
+  mainSong = loadSound("song6.mp3");
   for (const s of SONGS) songObjs.push(loadSound(s.file));
 }
 
 function setup() {
   createCanvas(WIDTH, HEIGHT);
-  textFont('monospace');
+  textFont("monospace");
   pixelDensity(1);
   uiButtons = [
-    {label:'Replay', y:38, color:'#2b9e4b', fn:doReplay},
-    {label:'Exit', y:90, color:'#c03538', fn:doExit},
-    {label:'Wishes', y:142, color:'#298be7', fn:doWishes},
-    {label:'Extra Party', y:194, color:'#ad49d3', fn:doFun}
+    { label: "Replay", y: 38, color: "#2b9e4b", fn: doReplay },
+    { label: "Exit", y: 90, color: "#c03538", fn: doExit },
+    { label: "Wishes", y: 142, color: "#298be7", fn: doWishes },
+    { label: "Extra Party", y: 194, color: "#ad49d3", fn: doFun },
   ];
   resetAll();
 }
@@ -53,19 +76,27 @@ function setup() {
 function resetAll() {
   t0 = millis();
   seqTime = 0;
-  stage = 0; countdown = 5; substageT0 = millis();
+  stage = 0;
+  countdown = 5;
+  substageT0 = millis();
   matrixCols = [];
   // Matrix: more cinematic, larger text & gaps
   let colCharSize = 28; // larger
-  let colPer = int(WIDTH / (colCharSize+4));
+  let colPer = int(WIDTH / (colCharSize + 4));
   matrixColsCount = max(26, colPer); // reduce so it's wider
   for (let i = 0; i < matrixColsCount; i++) {
     matrixCols.push({
-      entries: Array.from({length: int(random(10,22))}, (_,k)=>({
-        y: random(-HEIGHT*2.2, HEIGHT*1),
-        ch: String.fromCharCode(random([...'0123456789abcdefghijklmnopqrstuvwxyz'.split('')]).charCodeAt(0))
+      entries: Array.from({ length: int(random(10, 22)) }, (_, k) => ({
+        y: random(-HEIGHT * 2.2, HEIGHT * 1),
+        ch: String.fromCharCode(
+          random([
+            ..."0123456789abcdefghijklmnopqrstuvwxyz".split(""),
+          ]).charCodeAt(0)
+        ),
       })),
-      x: i * (WIDTH/matrixColsCount), speed: random(1.85, 3.8), fontSz:colCharSize
+      x: i * (WIDTH / matrixColsCount),
+      speed: random(1.85, 3.8),
+      fontSz: colCharSize,
     });
   }
   mainHearts = [];
@@ -74,48 +105,121 @@ function resetAll() {
     let t = radians(a);
     let x = 16 * pow(sin(t), 3);
     let y = 13 * cos(t) - 5 * cos(2 * t) - 2 * cos(3 * t) - cos(4 * t);
-    points.push([WIDTH/2+x*13, HEIGHT/2+-y*13-10]);
-    mainHearts.push({x:WIDTH/2+x*13, y:HEIGHT/2+-y*13-10, p:random()});
+    points.push([WIDTH / 2 + x * 13, HEIGHT / 2 + -y * 13 - 10]);
+    mainHearts.push({
+      x: WIDTH / 2 + x * 13,
+      y: HEIGHT / 2 + -y * 13 - 10,
+      p: random(),
+    });
   }
   ringHearts = [];
   // More sparkly, slower ring hearts
-  for (let i=0; i<points.length; i+=2) {
-    ringHearts.push({x:points[i][0],y:points[i][1],alpha:0,s:random(8,18),t:random(TWO_PI)});
+  for (let i = 0; i < points.length; i += 2) {
+    ringHearts.push({
+      x: points[i][0],
+      y: points[i][1],
+      alpha: 0,
+      s: random(8, 18),
+      t: random(TWO_PI),
+    });
   }
   risingHearts = [];
   dissolveParticles = [];
   confetti = [];
   cakeParticles = [];
   balloons = [];
-  wishesInput = '';
-  funModalOn = false; exitModalOn = false; wishesModalOn = false;
+  wishesInput = "";
+  funModalOn = false;
+  exitModalOn = false;
+  wishesModalOn = false;
   showButtons = false;
 }
 
 function draw() {
   background(0);
   drawMatrix();
-  if(!started) { drawStartOverlay(); return; }
-  if (stage === 0) { drawCountdown(); showButtons=false; }
-  else if(stage === 1) { drawHearts(); drawRingHearts(); drawConfetti(); drawBalloons(); drawCake(); drawBirthdayMsg(); showButtons=false;
-    if(millis()-substageT0>BDAY_FADE+300) { stage=2; substageT0=millis();} }
-  else if(stage === 2) { drawHearts(); drawRingHearts(); drawConfetti(); drawBalloons(); drawCake(); drawWishMsg(); showButtons=false; 
-    if(millis()-substageT0>WISH_FADE+200) {stage=3; substageT0=millis(); showButtons=true;} }
-  else if (stage === 3) { drawHearts(); drawRingHearts(); drawConfetti(); drawBalloons(); drawCake(); drawWithLove(); showButtons=true; }
-  if(showButtons) drawUIButtons();
-  if(chooseSongModalOn) drawSongModal();
-  if(exitModalOn) drawExitModal();
-  if(wishesModalOn) drawWishesModal();
+  if (!started) {
+    drawStartOverlay();
+    return;
+  }
+  if (stage === 0) {
+    drawCountdown();
+    showButtons = false;
+  } else if (stage === 1) {
+    drawHearts();
+    drawRingHearts();
+    drawConfetti();
+    drawBalloons();
+    drawCake();
+    drawBirthdayMsg();
+    showButtons = false;
+    if (millis() - substageT0 > BDAY_FADE + 300) {
+      stage = 2;
+      substageT0 = millis();
+    }
+  } else if (stage === 2) {
+    drawHearts();
+    drawRingHearts();
+    drawConfetti();
+    drawBalloons();
+    drawCake();
+    drawWishMsg();
+    showButtons = false;
+    if (millis() - substageT0 > WISH_FADE + 200) {
+      stage = 3;
+      substageT0 = millis();
+      showButtons = true;
+    }
+  } else if (stage === 3) {
+    drawHearts();
+    drawRingHearts();
+    drawConfetti();
+    drawBalloons();
+    drawCake();
+    drawWithLove();
+    showButtons = true;
+  }
+  if (showButtons) drawUIButtons();
+  if (chooseSongModalOn) drawSongModal();
+  if (exitModalOn) drawExitModal();
+  if (wishesModalOn) drawWishesModal();
 }
 function drawMatrix() {
   // Define the message exactly as you want it to appear
   const message = [
-    "H", "A", "P", "P", "Y", "", 
-    "B", "I", "R", "T", "H", "D", "A", "Y", "",
-    "A", "C", "H", "A", "I", "",
-    "0", "1", ".", "0", "9", ".", "2", "0", "0", "4"
+    "H",
+    "A",
+    "P",
+    "P",
+    "Y",
+    "",
+    "B",
+    "I",
+    "R",
+    "T",
+    "H",
+    "D",
+    "A",
+    "Y",
+    "",
+    "A",
+    "C",
+    "H",
+    "A",
+    "I",
+    "",
+    "0",
+    "1",
+    ".",
+    "0",
+    "9",
+    ".",
+    "2",
+    "0",
+    "0",
+    "4",
   ];
-  
+
   // Define color variations (red-pink-white)
   const messageColors = [
     [255, 180, 200], // Light pink
@@ -124,19 +228,19 @@ function drawMatrix() {
     [255, 100, 140], // Red-pink
     [255, 200, 220], // Very light pink
     [255, 220, 230], // Almost white with pink tint
-    [255, 240, 245]  // Nearly white
+    [255, 240, 245], // Nearly white
   ];
-  
+
   // Initialize message state if not exists
-  if (typeof window.messageState === 'undefined') {
+  if (typeof window.messageState === "undefined") {
     window.messageState = {
       lastAppearance: 0,
       isVisible: false,
       duration: 12000, // 6 seconds visible
       pauseTime: 1000, // 5 seconds hidden
-      columns: []
+      columns: [],
     };
-    
+
     // Create message columns
     for (let i = 0; i < matrixColsCount; i += 2) {
       if (i < matrixColsCount) {
@@ -145,25 +249,25 @@ function drawMatrix() {
           y: -HEIGHT - random(100, 300),
           speed: 1.2, // Fixed speed for all message columns
           active: false,
-          charColors: []
+          charColors: [],
         });
       }
     }
   }
-  
+
   let state = window.messageState;
   let currentTime = millis();
-  
+
   // Simple timing control - toggle between visible and hidden states
   if (state.isVisible && currentTime - state.lastAppearance > state.duration) {
     state.isVisible = false;
     state.lastAppearance = currentTime;
-    
+
     // Reset columns for next appearance
     for (let col of state.columns) {
       col.y = -HEIGHT - random(100, 600);
       col.active = random() < 0.9; // 70% chance to be active next time
-      
+
       // Generate new colors for next appearance
       if (col.active) {
         col.charColors = [];
@@ -177,11 +281,14 @@ function drawMatrix() {
         }
       }
     }
-  } else if (!state.isVisible && currentTime - state.lastAppearance > state.pauseTime) {
+  } else if (
+    !state.isVisible &&
+    currentTime - state.lastAppearance > state.pauseTime
+  ) {
     state.isVisible = true;
     state.lastAppearance = currentTime;
   }
-  
+
   // Draw regular matrix code (but don't draw over message columns when message is visible)
   for (let col of matrixCols) {
     // Skip drawing matrix code over message columns when message is visible
@@ -195,43 +302,56 @@ function drawMatrix() {
       }
       if (isMessageColumn) continue;
     }
-    
+
     for (let eidx = 0; eidx < col.entries.length; eidx++) {
       let e = col.entries[eidx];
       let t = eidx / (col.entries.length - 1);
-      let head = (eidx == col.entries.length - 1);
-      
+      let head = eidx == col.entries.length - 1;
+
       let c;
       if (head && random() < 0.75) c = color(250, 240, 255, 225);
-      else if (head && random() < 0.30) c = color(255, 210, 239, 205);
-      else if (random() < .055) c = color(255, 220, 240, 145 + random(60));
-      else c = lerpColor(color(255, 180 - 60 * t, 220 - 50 * t), color(170, 160 + 110 * t, 190 + 40 * t), t * 0.7 + 0.09 * abs(sin(frameCount / 27 + col.x)));
-      
+      else if (head && random() < 0.3) c = color(255, 210, 239, 205);
+      else if (random() < 0.055) c = color(255, 220, 240, 145 + random(60));
+      else
+        c = lerpColor(
+          color(255, 180 - 60 * t, 220 - 50 * t),
+          color(170, 160 + 110 * t, 190 + 40 * t),
+          t * 0.7 + 0.09 * abs(sin(frameCount / 27 + col.x))
+        );
+
       fill(c);
       textSize(col.fontSz + (head ? 2 : 0));
       let my = e.y;
-      
+
       text(e.ch, col.x, my);
       e.y += col.speed * (1.03 + 0.46 * sin(millis() / 660 + col.x));
-      
+
       if (e.y > HEIGHT + 36) {
         e.y = random(-240, -20);
-        e.ch = String.fromCharCode(random([...'0123456789abcdefghijklmnopqrstuvwxyz'.split('')]).charCodeAt(0));
+        e.ch = String.fromCharCode(
+          random([
+            ..."0123456789abcdefghijklmnopqrstuvwxyz".split(""),
+          ]).charCodeAt(0)
+        );
       }
-      
+
       if (random() < 0.042 + 0.03 * head) {
-        e.ch = String.fromCharCode(random([...'0123456789abcdefghijklmnopqrstuvwxyz'.split('')]).charCodeAt(0));
+        e.ch = String.fromCharCode(
+          random([
+            ..."0123456789abcdefghijklmnopqrstuvwxyz".split(""),
+          ]).charCodeAt(0)
+        );
       }
     }
   }
-  
+
   // Draw message when visible
   if (state.isVisible) {
     for (let col of state.columns) {
       if (col.active) {
         // Move column down
         col.y += col.speed;
-        
+
         // Calculate fade based on position
         let fade = 1;
         if (col.y < HEIGHT * 0.2) {
@@ -241,7 +361,7 @@ function drawMatrix() {
           // Fade out at the bottom
           fade = 1 - constrain((col.y - HEIGHT * 0.7) / (HEIGHT * 0.3), 0, 1);
         }
-        
+
         // Draw message with color variations
         let yPos = col.y;
         for (let i = 0; i < message.length; i++) {
@@ -249,28 +369,32 @@ function drawMatrix() {
             yPos += 30;
             continue;
           }
-          
+
           const color = col.charColors[i];
           let charAlpha = 255 * fade;
-          
-          if (i === 0 || message[i-1] === "") {
+
+          if (i === 0 || message[i - 1] === "") {
             // Head character is brighter with glow
             charAlpha = min(255, charAlpha * 1.3);
             drawingContext.shadowBlur = 15;
-            drawingContext.shadowColor = `rgba(${color[0]}, ${color[1] - 50}, ${color[2] - 50}, 0.8)`;
+            drawingContext.shadowColor = `rgba(${color[0]}, ${color[1] - 50}, ${
+              color[2] - 50
+            }, 0.8)`;
           } else {
             drawingContext.shadowBlur = 8;
-            drawingContext.shadowColor = `rgba(${color[0]}, ${color[1] - 30}, ${color[2] - 30}, 0.5)`;
+            drawingContext.shadowColor = `rgba(${color[0]}, ${color[1] - 30}, ${
+              color[2] - 30
+            }, 0.5)`;
           }
-          
+
           fill(color[0], color[1], color[2], charAlpha);
           textSize(28);
           text(message[i], col.x, yPos);
           yPos += 24;
         }
-        
+
         drawingContext.shadowBlur = 0;
-        
+
         // Reset column if it goes off screen
         if (col.y > HEIGHT + message.length * 24) {
           col.y = -HEIGHT - random(100, 300);
@@ -278,113 +402,161 @@ function drawMatrix() {
       }
     }
   }
-  
+
   // Lighter dark overlay to maintain message visibility
   fill(0, 0, 0, matrixAlpha - 40);
   rect(0, 0, WIDTH, HEIGHT);
 }
 function drawCountdown() {
-  let t = millis()-t0;
+  let t = millis() - t0;
   let spacing = 1200;
-  fill(255);textAlign(CENTER,CENTER);
-  let which = Math.max(0, countdown-1);
-  let prog = min(1, (t%spacing)/spacing);
-  textSize(115*(1+.16*prog));
-  let a = 252*(1-prog*prog);
-  fill(255,a);
-  if (countdown>0)
-    text(countdown, WIDTH/2, HEIGHT/2);
+  fill(255);
+  textAlign(CENTER, CENTER);
+  let which = Math.max(0, countdown - 1);
+  let prog = min(1, (t % spacing) / spacing);
+  textSize(115 * (1 + 0.16 * prog));
+  let a = 252 * (1 - prog * prog);
+  fill(255, a);
+  if (countdown > 0) text(countdown, WIDTH / 2, HEIGHT / 2);
   // Dissolve effect
-  if(countdown>0&&prog>0.92&&dissolveParticles.length<30){
-    for(let i=0;i<36;++i)dissolveParticles.push({
-      x:WIDTH/2+random(-22,22),y:HEIGHT/2+random(-24,24),vx:random(-2.5,2.5),vy:random(-3.5,-0.8),a:255,col:color(random(170,255),random(80,200),random(100,220))
-    });
+  if (countdown > 0 && prog > 0.92 && dissolveParticles.length < 30) {
+    for (let i = 0; i < 36; ++i)
+      dissolveParticles.push({
+        x: WIDTH / 2 + random(-22, 22),
+        y: HEIGHT / 2 + random(-24, 24),
+        vx: random(-2.5, 2.5),
+        vy: random(-3.5, -0.8),
+        a: 255,
+        col: color(random(170, 255), random(80, 200), random(100, 220)),
+      });
   }
   for (let p of dissolveParticles) {
-    fill(p.col);p.x+=p.vx;p.y+=p.vy;p.a-=9;
-    fill(red(p.col),green(p.col),blue(p.col),max(0,p.a));
-    ellipse(p.x,p.y, 14, 14);
+    fill(p.col);
+    p.x += p.vx;
+    p.y += p.vy;
+    p.a -= 9;
+    fill(red(p.col), green(p.col), blue(p.col), max(0, p.a));
+    ellipse(p.x, p.y, 14, 14);
   }
-  dissolveParticles = dissolveParticles.filter(p=>p.a>0);
-  if(t>spacing){
+  dissolveParticles = dissolveParticles.filter((p) => p.a > 0);
+  if (t > spacing) {
     countdown--;
-    t0=millis();
-    dissolveParticles=[];
-    balloons.push({x:WIDTH/2+random(-18,18), y:HEIGHT/2+40, vx:random(-2.4,2.4), vy:-random(1.2,2.2), t:0, kind:'count', color:color(random(230,255),random(90,200),random(100,190))});
-    if(countdown===0){ stage=1; substageT0=millis(); }
+    t0 = millis();
+    dissolveParticles = [];
+    balloons.push({
+      x: WIDTH / 2 + random(-18, 18),
+      y: HEIGHT / 2 + 40,
+      vx: random(-2.4, 2.4),
+      vy: -random(1.2, 2.2),
+      t: 0,
+      kind: "count",
+      color: color(random(230, 255), random(90, 200), random(100, 190)),
+    });
+    if (countdown === 0) {
+      stage = 1;
+      substageT0 = millis();
+    }
   }
   drawBalloons();
 }
 function drawBirthdayMsg() {
-  let t=millis()-substageT0;
-  let fadein = constrain(t/700,0,1), fadeout = constrain((BDAY_FADE-t)/800,0,1);
-  let yoff = map(1-fadein,0,1,-72,0)+map(1-fadeout,0,1,0,-90);
+  let t = millis() - substageT0;
+  let fadein = constrain(t / 700, 0, 1),
+    fadeout = constrain((BDAY_FADE - t) / 800, 0, 1);
+  let yoff = map(1 - fadein, 0, 1, -72, 0) + map(1 - fadeout, 0, 1, 0, -90);
   push();
-  translate(0,yoff);
-  let msg = "Happy Birthday, "+NAME+"!";
+  translate(0, yoff);
+  let msg = "Happy Birthday, " + NAME + "!";
   textSize(56);
-  textAlign(CENTER,CENTER);
+  textAlign(CENTER, CENTER);
   let totalW = 0;
-  for(let i=0; i<msg.length; i++) totalW += textWidth(msg[i]);
-  let startX = WIDTH/2 - totalW/2;
+  for (let i = 0; i < msg.length; i++) totalW += textWidth(msg[i]);
+  let startX = WIDTH / 2 - totalW / 2;
   let x = startX;
   for (let i = 0; i < msg.length; i++) {
-    let alph = 255*fadein*fadeout;
-    fill(...RAINBOW[i%RAINBOW.length],alph);
-    text(msg.charAt(i), x + textWidth(msg[i])/2, 108);
+    let alph = 255 * fadein * fadeout;
+    fill(...RAINBOW[i % RAINBOW.length], alph);
+    text(msg.charAt(i), x + textWidth(msg[i]) / 2, 108);
     x += textWidth(msg[i]);
   }
   pop();
-  if(t>BDAY_FADE*0.58&&balloons.filter(b=>b.kind=='bday').length<1) {
-    balloons.push({x:WIDTH/2, y:108, vx:random(-2,2), vy:-random(1,2), t:0, kind:'bday', color:color(239,185,240,180)});
+  if (
+    t > BDAY_FADE * 0.58 &&
+    balloons.filter((b) => b.kind == "bday").length < 1
+  ) {
+    balloons.push({
+      x: WIDTH / 2,
+      y: 108,
+      vx: random(-2, 2),
+      vy: -random(1, 2),
+      t: 0,
+      kind: "bday",
+      color: color(239, 185, 240, 180),
+    });
   }
 }
 function drawWishMsg() {
-  let t=millis()-substageT0;
-  let fadein = constrain(t/700,0,1), fadeout = constrain((WISH_FADE-t)/850,0,1);
-  let yoff = map(1-fadein,0,1,-69,0)+map(1-fadeout,0,1,0,-88);
+  let t = millis() - substageT0;
+  let fadein = constrain(t / 700, 0, 1),
+    fadeout = constrain((WISH_FADE - t) / 850, 0, 1);
+  let yoff = map(1 - fadein, 0, 1, -69, 0) + map(1 - fadeout, 0, 1, 0, -88);
   push();
-  translate(0,yoff);
+  translate(0, yoff);
   let msg = WISH;
   textSize(34);
-  textAlign(CENTER,CENTER);
+  textAlign(CENTER, CENTER);
   let totalW = 0;
-  for(let i=0; i<msg.length; i++) totalW += textWidth(msg[i]);
-  let startX = WIDTH/2 - totalW/2;
+  for (let i = 0; i < msg.length; i++) totalW += textWidth(msg[i]);
+  let startX = WIDTH / 2 - totalW / 2;
   let x = startX;
-  for(let i = 0; i < msg.length; i++) {
-    let alph = 248*fadein*fadeout;
-    fill(...RAINBOW[i%RAINBOW.length],alph);
-    text(msg.charAt(i), x + textWidth(msg[i])/2, 184);
+  for (let i = 0; i < msg.length; i++) {
+    let alph = 248 * fadein * fadeout;
+    fill(...RAINBOW[i % RAINBOW.length], alph);
+    text(msg.charAt(i), x + textWidth(msg[i]) / 2, 184);
     x += textWidth(msg[i]);
   }
   pop();
-  if(t>WISH_FADE*0.6&&balloons.filter(b=>b.kind=='wish').length<1) {
-    balloons.push({x:WIDTH/2, y:184, vx:random(-2,2), vy:-random(1,2), t:0, kind:'wish', color:color(180,226,255,180)});
+  if (
+    t > WISH_FADE * 0.6 &&
+    balloons.filter((b) => b.kind == "wish").length < 1
+  ) {
+    balloons.push({
+      x: WIDTH / 2,
+      y: 184,
+      vx: random(-2, 2),
+      vy: -random(1, 2),
+      t: 0,
+      kind: "wish",
+      color: color(180, 226, 255, 180),
+    });
   }
 }
 function drawWithLove() {
-  let msg = 'Happy Birthday, Achai!, I wishes you a Happy Birthday with all my love and warm hugs. I hope today reminds you of how beautiful and special you are.';
-  fill(255,220,240); textSize(25); textAlign(CENTER,CENTER);
-  let y = HEIGHT/2+138;
-  let wrapLines = wrapTextLines(msg, WIDTH-120); // leave margin
-  for(let i=0; i<wrapLines.length; i++) {
-    text(wrapLines[i], WIDTH/2, y+i*30);
+  let msg =
+    "Happy Birthday, Achai!, I wishes you a Happy Birthday with all my love and warm hugs. I hope today reminds you of how beautiful and special you are.";
+  fill(255, 220, 240);
+  textSize(25);
+  textAlign(CENTER, CENTER);
+  let y = HEIGHT / 2 + 138;
+  let wrapLines = wrapTextLines(msg, WIDTH - 120); // leave margin
+  for (let i = 0; i < wrapLines.length; i++) {
+    text(wrapLines[i], WIDTH / 2, y + i * 30);
   }
-  fill(255,200,230);
+  fill(255, 200, 230);
   textSize(28);
-  text('Enjoy your Lovely Day',WIDTH/2,y+wrapLines.length*31+8);
+  text("Enjoy your Lovely Day", WIDTH / 2, y + wrapLines.length * 31 + 8);
 }
 // Helper for word-wrapping text in canvas
 function wrapTextLines(str, maxWidth) {
   textSize(25);
-  let words = str.split(' ');
-  let lines = [], line = '';
-  for(let n=0; n<words.length; n++) {
-    let testLine = line + words[n] + ' ';
+  let words = str.split(" ");
+  let lines = [],
+    line = "";
+  for (let n = 0; n < words.length; n++) {
+    let testLine = line + words[n] + " ";
     if (textWidth(testLine) > maxWidth && n > 0) {
       lines.push(line.trim());
-      line = words[n] + ' ';
+      line = words[n] + " ";
     } else {
       line = testLine;
     }
@@ -395,88 +567,160 @@ function wrapTextLines(str, maxWidth) {
 function drawHearts() {
   noStroke();
   for (let h of mainHearts) {
-    fill(255,70+random(80),110+random(80),210);
-    ellipse(h.x, h.y, 22+random(-4,4),22+random(-4,4));
+    fill(255, 70 + random(80), 110 + random(80), 210);
+    ellipse(h.x, h.y, 22 + random(-4, 4), 22 + random(-4, 4));
   }
-  if (frameCount%7===0&&risingHearts.length<18) {
-    risingHearts.push({x:random(WIDTH*0.16,WIDTH*0.85),y:HEIGHT+random(8,60),vx:random(-.5,.5),vy:-random(1.05,2.8),size:random(4,8),a:255});
+  if (frameCount % 7 === 0 && risingHearts.length < 18) {
+    risingHearts.push({
+      x: random(WIDTH * 0.16, WIDTH * 0.85),
+      y: HEIGHT + random(8, 60),
+      vx: random(-0.5, 0.5),
+      vy: -random(1.05, 2.8),
+      size: random(4, 8),
+      a: 255,
+    });
   }
-  for(let rh of risingHearts){
-    push();fill(255,random(90,150),random(120,200),rh.a);
-    let x=rh.x,y=rh.y,s=rh.size;
-    ellipse(x-s/2,y-s/4,s,s); ellipse(x+s/2,y-s/4,s,s);
-    triangle(x-s,y,x+s,y,x,y+s*1.14);
+  for (let rh of risingHearts) {
+    push();
+    fill(255, random(90, 150), random(120, 200), rh.a);
+    let x = rh.x,
+      y = rh.y,
+      s = rh.size;
+    ellipse(x - s / 2, y - s / 4, s, s);
+    ellipse(x + s / 2, y - s / 4, s, s);
+    triangle(x - s, y, x + s, y, x, y + s * 1.14);
     pop();
-    rh.x+=rh.vx;rh.y+=rh.vy;rh.a-=.77;}
-  risingHearts = risingHearts.filter(rh=>rh.y>HEIGHT/2-23&&rh.a>22);
+    rh.x += rh.vx;
+    rh.y += rh.vy;
+    rh.a -= 0.77;
+  }
+  risingHearts = risingHearts.filter(
+    (rh) => rh.y > HEIGHT / 2 - 23 && rh.a > 22
+  );
 }
-function drawRingHearts(){
-  let base = int(millis()/290)%ringHearts.length;
-  for(let i=0;i<ringHearts.length;++i){
-    let delta = (i-base+ringHearts.length)%ringHearts.length;
-    if(delta<6){
-      let p=1-delta/6.0,e=1-(1-p)**3,alpha=215*e*e;
-      let s=int(10+12*e*e+random(-2,2));
-      let pulse = 1+0.10*sin(millis()/158+delta*1.9);
-      let c=color(255,
-        120+84*e*pulse*random(0.7,1.0),
-        150+110*e*pulse*random(0.8,1.0),alpha*random(0.8,1));
-      let {x,y}=ringHearts[i];
+function drawRingHearts() {
+  let base = int(millis() / 290) % ringHearts.length;
+  for (let i = 0; i < ringHearts.length; ++i) {
+    let delta = (i - base + ringHearts.length) % ringHearts.length;
+    if (delta < 6) {
+      let p = 1 - delta / 6.0,
+        e = 1 - (1 - p) ** 3,
+        alpha = 215 * e * e;
+      let s = int(10 + 12 * e * e + random(-2, 2));
+      let pulse = 1 + 0.1 * sin(millis() / 158 + delta * 1.9);
+      let c = color(
+        255,
+        120 + 84 * e * pulse * random(0.7, 1.0),
+        150 + 110 * e * pulse * random(0.8, 1.0),
+        alpha * random(0.8, 1)
+      );
+      let { x, y } = ringHearts[i];
       drawMiniHeart(x, y, s, c);
     }
   }
 }
 // Draws a mini heart at (x, y) of size s and color c
 function drawMiniHeart(x, y, s, c) {
-  push(); noStroke(); fill(c);
-  ellipse(x-s*0.5, y-s*0.3, s, s);
-  ellipse(x+s*0.5, y-s*0.3, s, s);
-  triangle(x-s, y, x+s, y, x, y+s*0.95);
+  push();
+  noStroke();
+  fill(c);
+  ellipse(x - s * 0.5, y - s * 0.3, s, s);
+  ellipse(x + s * 0.5, y - s * 0.3, s, s);
+  triangle(x - s, y, x + s, y, x, y + s * 0.95);
   pop();
 }
-function drawCake(){
-  let cx = WIDTH/2, cy = HEIGHT/2+46;
-  let cakeW = 193, cakeH = 90;
-  let layers = [[250,200,230],[240,170,210],[255,220,200],[245,200,255]];
-  for(let i=0;i<layers.length;++i){
-    let ly = cy-12 + i*18;
-    fill(40,20,35); rect(cx-cakeW/2+7,ly+6,cakeW-14,12,8);
-    fill(...layers[i]); rect(cx-cakeW/2+10,ly,cakeW-20,12,8);
+function drawCake() {
+  let cx = WIDTH / 2,
+    cy = HEIGHT / 2 + 46;
+  let cakeW = 193,
+    cakeH = 90;
+  let layers = [
+    [250, 200, 230],
+    [240, 170, 210],
+    [255, 220, 200],
+    [245, 200, 255],
+  ];
+  for (let i = 0; i < layers.length; ++i) {
+    let ly = cy - 12 + i * 18;
+    fill(40, 20, 35);
+    rect(cx - cakeW / 2 + 7, ly + 6, cakeW - 14, 12, 8);
+    fill(...layers[i]);
+    rect(cx - cakeW / 2 + 10, ly, cakeW - 20, 12, 8);
   }
-  for (let i=0;i<18;++i){
-    fill(random([color(255,120,180),color(255,200,80),color(180,255,220),color(200,200,255)]));
-    ellipse(cx-cakeW/2+28+random(cakeW-56),cy-3+random(cakeH-18),5,5);
+  for (let i = 0; i < 18; ++i) {
+    fill(
+      random([
+        color(255, 120, 180),
+        color(255, 200, 80),
+        color(180, 255, 220),
+        color(200, 200, 255),
+      ])
+    );
+    ellipse(
+      cx - cakeW / 2 + 28 + random(cakeW - 56),
+      cy - 3 + random(cakeH - 18),
+      5,
+      5
+    );
   }
-  fill(255,255,230); rect(cx-8,cy-42,16,28,6);
-  let f = (sin(millis()/180)+1)/2.0;
-  fill(255,220+26*f,130);
-  ellipse(cx, cy-44-8*f, 16, 24+11*f);
+  fill(255, 255, 230);
+  rect(cx - 8, cy - 42, 16, 28, 6);
+  let f = (sin(millis() / 180) + 1) / 2.0;
+  fill(255, 220 + 26 * f, 130);
+  ellipse(cx, cy - 44 - 8 * f, 16, 24 + 11 * f);
 }
-function drawConfetti(){
-  if (confetti.length<140) for(let i=0;i<4;++i) confetti.push({x:random(WIDTH),y:random(-HEIGHT,0),size:random(3,8),c:color(random(200,255),random(70,255),random(70,255)),s:random(1.2,3.7),sway:random(TWO_PI)});
-  for (let c of confetti){
-    fill(c.c); push(); translate(c.x+sin(c.sway+frameCount*0.034)*8, c.y);
-    rotate(sin(c.sway+frameCount*0.04)*0.28); rect(0, 0, c.size, c.size); pop();
-    c.y += c.s; if (c.y > HEIGHT+8) {c.y = random(-60, 0); c.x = random(WIDTH);}
+function drawConfetti() {
+  if (confetti.length < 140)
+    for (let i = 0; i < 4; ++i)
+      confetti.push({
+        x: random(WIDTH),
+        y: random(-HEIGHT, 0),
+        size: random(3, 8),
+        c: color(random(200, 255), random(70, 255), random(70, 255)),
+        s: random(1.2, 3.7),
+        sway: random(TWO_PI),
+      });
+  for (let c of confetti) {
+    fill(c.c);
+    push();
+    translate(c.x + sin(c.sway + frameCount * 0.034) * 8, c.y);
+    rotate(sin(c.sway + frameCount * 0.04) * 0.28);
+    rect(0, 0, c.size, c.size);
+    pop();
+    c.y += c.s;
+    if (c.y > HEIGHT + 8) {
+      c.y = random(-60, 0);
+      c.x = random(WIDTH);
+    }
   }
 }
-function drawBalloons(){
-  for(let b of balloons){
-    b.y += b.vy; b.x += b.vx; b.t += 1;
-    let sway = 7*sin((b.t)/43.0);
-    stroke(230,220,210,140); strokeWeight(2);
-    line(b.x, b.y, b.x+sway, b.y-29);
-    noStroke(); fill(b.color);
-    ellipse(b.x+sway, b.y-39, 34, 44);
+function drawBalloons() {
+  for (let b of balloons) {
+    b.y += b.vy;
+    b.x += b.vx;
+    b.t += 1;
+    let sway = 7 * sin(b.t / 43.0);
+    stroke(230, 220, 210, 140);
+    strokeWeight(2);
+    line(b.x, b.y, b.x + sway, b.y - 29);
+    noStroke();
+    fill(b.color);
+    ellipse(b.x + sway, b.y - 39, 34, 44);
   }
-  balloons = balloons.filter(b=>b.y>-120);
+  balloons = balloons.filter((b) => b.y > -120);
 }
 function drawUIButtons() {
   // Draw menu icon (hamburger)
   fill(255, 200);
   noStroke();
-  rect(menuIconX - menuIconSize/2, menuIconY - menuIconSize/2, menuIconSize, menuIconSize, 8);
-  
+  rect(
+    menuIconX - menuIconSize / 2,
+    menuIconY - menuIconSize / 2,
+    menuIconSize,
+    menuIconSize,
+    8
+  );
+
   // Draw hamburger lines
   stroke(60);
   strokeWeight(3);
@@ -484,7 +728,7 @@ function drawUIButtons() {
   line(menuIconX - 10, menuIconY, menuIconX + 10, menuIconY);
   line(menuIconX - 10, menuIconY + 8, menuIconX + 10, menuIconY + 8);
   noStroke();
-  
+
   // Draw dropdown if open
   if (dropdownOpen) {
     // Background
@@ -493,18 +737,18 @@ function drawUIButtons() {
     strokeWeight(2);
     rect(menuIconX - 70, menuIconY + 25, 140, 200, 12);
     noStroke();
-    
+
     // Draw buttons in dropdown
     for (let idx = 0; idx < uiButtons.length; idx++) {
       let btn = uiButtons[idx];
       let by = menuIconY + 50 + idx * 45;
-      
+
       // Button background
       fill(btn.color);
       stroke(255, 244, 255, 40);
       rect(menuIconX - 65, by, 130, 38, 8);
       noStroke();
-      
+
       // Button text
       fill(255);
       textAlign(CENTER, CENTER);
@@ -513,22 +757,49 @@ function drawUIButtons() {
     }
   }
 }
-function doReplay() { resetAll(); if(mainSong.isPlaying()) mainSong.stop(); for(let s of songObjs) s.stop(); isSongPlaying=false; if (!mainSong.isPlaying()) { mainSong.play(); isSongPlaying=true; } }
-function doExit() { exitModalOn = true; for(let s of songObjs) s.stop(); mainSong.stop(); isSongPlaying=false; }
-function doWishes() { wishesInput=''; wishesModalOn=true; wishesPlaceholder=true; }
-function doFun() { chooseSongModalOn=true; }
+function doReplay() {
+  resetAll();
+  if (mainSong.isPlaying()) mainSong.stop();
+  for (let s of songObjs) s.stop();
+  isSongPlaying = false;
+  if (!mainSong.isPlaying()) {
+    mainSong.play();
+    isSongPlaying = true;
+  }
+}
+function doExit() {
+  exitModalOn = true;
+  for (let s of songObjs) s.stop();
+  mainSong.stop();
+  isSongPlaying = false;
+}
+function doWishes() {
+  wishesInput = "";
+  wishesModalOn = true;
+  wishesPlaceholder = true;
+}
+function doFun() {
+  chooseSongModalOn = true;
+}
 function drawStartOverlay() {
-  fill(0,0,0,205); rect(0,0,WIDTH,HEIGHT);
-  fill(255,246,252); stroke(180,100,255,90); strokeWeight(2);
-  rect(WIDTH/2-200, HEIGHT/2-80, 405, 146, 30);
-  noStroke(); fill(90,15,70); textAlign(CENTER,CENTER); textSize(33);
-  text('Click to Start the Magic!', WIDTH/2, HEIGHT/2-16);
-  textSize(22); fill(133,128,180);
-  text('Music & Party will begin 🎵', WIDTH/2, HEIGHT/2+29);
+  fill(0, 0, 0, 205);
+  rect(0, 0, WIDTH, HEIGHT);
+  fill(255, 246, 252);
+  stroke(180, 100, 255, 90);
+  strokeWeight(2);
+  rect(WIDTH / 2 - 200, HEIGHT / 2 - 80, 405, 146, 30);
+  noStroke();
+  fill(90, 15, 70);
+  textAlign(CENTER, CENTER);
+  textSize(33);
+  text("Click to Start the Magic!", WIDTH / 2, HEIGHT / 2 - 16);
+  textSize(22);
+  fill(133, 128, 180);
+  text("Music & Party will begin 🎵", WIDTH / 2, HEIGHT / 2 + 29);
 }
 
 function mousePressed() {
-  if(!started) {
+  if (!started) {
     started = true;
     resetAll();
     stage = 0;
@@ -540,21 +811,28 @@ function mousePressed() {
     }
     return;
   }
-  
+
   // Check if menu icon was clicked
-  if (showButtons && dist(mouseX, mouseY, menuIconX, menuIconY) < menuIconSize/2) {
+  if (
+    showButtons &&
+    dist(mouseX, mouseY, menuIconX, menuIconY) < menuIconSize / 2
+  ) {
     dropdownOpen = !dropdownOpen;
     return;
   }
-  
+
   // Check dropdown buttons if open
   if (dropdownOpen && showButtons) {
-    for(let idx = 0; idx < uiButtons.length; idx++) {
+    for (let idx = 0; idx < uiButtons.length; idx++) {
       let btn = uiButtons[idx];
       let by = menuIconY + 50 + idx * 45;
-      
-      if(mouseX > menuIconX - 65 && mouseX < menuIconX + 65 && 
-         mouseY > by && mouseY < by + 38) {
+
+      if (
+        mouseX > menuIconX - 65 &&
+        mouseX < menuIconX + 65 &&
+        mouseY > by &&
+        mouseY < by + 38
+      ) {
         dropdownOpen = false;
         btn.fn();
         return;
@@ -564,18 +842,20 @@ function mousePressed() {
     dropdownOpen = false;
     return;
   }
-  
+
   // Existing modal handling code remains the same...
   if (chooseSongModalOn) {
-    for(let i=0; i<SONGS.length; ++i){
-      let rx=WIDTH/2-152,ry=HEIGHT/2-56+i*66;
-      if(mouseX>rx&&mouseX<rx+294 && mouseY>ry&&mouseY<ry+56){
-        if(songObjs[i].isPlaying()) songObjs[i].stop();
-        for(let j=0;j<songObjs.length;++j)if(j!==i)songObjs[j].stop();
+    for (let i = 0; i < SONGS.length; ++i) {
+      let rx = WIDTH / 2 - 152,
+        ry = HEIGHT / 2 - 56 + i * 66;
+      if (mouseX > rx && mouseX < rx + 294 && mouseY > ry && mouseY < ry + 56) {
+        if (songObjs[i].isPlaying()) songObjs[i].stop();
+        for (let j = 0; j < songObjs.length; ++j)
+          if (j !== i) songObjs[j].stop();
         mainSong.stop();
         songObjs[i].play();
-        lastPlayedSongIdx=i;
-        chooseSongModalOn=false;
+        lastPlayedSongIdx = i;
+        chooseSongModalOn = false;
         isSongPlaying = true;
         return;
       }
@@ -583,80 +863,156 @@ function mousePressed() {
     return;
   }
 }
-function keyPressed(){
-  if(exitModalOn && (key==='Escape'||key==='q')) {exitModalOn=false;}
-  if(wishesModalOn && (key==='Escape'||key==='q')) {wishesModalOn=false; wishesInput=''; wishesPlaceholder=true;}
-  if(chooseSongModalOn && (key==='Escape'||key==='q')) {chooseSongModalOn=false;}
-  if(dropdownOpen && key === 'Escape') {dropdownOpen = false;} // Add this line
+function keyPressed() {
+  if (exitModalOn && (key === "Escape" || key === "q")) {
+    exitModalOn = false;
+  }
+  if (wishesModalOn && (key === "Escape" || key === "q")) {
+    wishesModalOn = false;
+    wishesInput = "";
+    wishesPlaceholder = true;
+  }
+  if (chooseSongModalOn && (key === "Escape" || key === "q")) {
+    chooseSongModalOn = false;
+  }
+  if (dropdownOpen && key === "Escape") {
+    dropdownOpen = false;
+  } // Add this line
 }
 function drawExitModal() {
-  fill(30,0,45,224); rect(0,0,WIDTH,HEIGHT);
-  fill(255); stroke(200,130,220,100); strokeWeight(2);
-  rect(WIDTH/2-162,HEIGHT/2-50,332,100,34);
-  noStroke(); fill(75,30,80); textAlign(CENTER,CENTER); textSize(25);
-  text('Goodbye!\nReload page to restart.',WIDTH/2,HEIGHT/2);
+  fill(30, 0, 45, 224);
+  rect(0, 0, WIDTH, HEIGHT);
+  fill(255);
+  stroke(200, 130, 220, 100);
+  strokeWeight(2);
+  rect(WIDTH / 2 - 162, HEIGHT / 2 - 50, 332, 100, 34);
+  noStroke();
+  fill(75, 30, 80);
+  textAlign(CENTER, CENTER);
+  textSize(25);
+  text("Goodbye!\nReload page to restart.", WIDTH / 2, HEIGHT / 2);
 }
 function drawSongModal() {
-  fill(0,0,0,197); rect(0,0,width,height);
-  fill(255, 249, 254); stroke(200,140,255,90); strokeWeight(3);
+  fill(0, 0, 0, 197);
+  rect(0, 0, width, height);
+  fill(255, 249, 254);
+  stroke(200, 140, 255, 90);
+  strokeWeight(3);
   let modalH = 440;
-  rect(width/2-220, height/2-modalH/2, 440, modalH, 32);
-  noStroke(); fill(40,20,45); textAlign(CENTER,CENTER); textSize(34);
-  text('Choose Birthday Song', width/2, height/2-modalH/2+55);
+  rect(width / 2 - 220, height / 2 - modalH / 2, 440, modalH, 32);
+  noStroke();
+  fill(40, 20, 45);
+  textAlign(CENTER, CENTER);
+  textSize(34);
+  text("Choose Birthday Song", width / 2, height / 2 - modalH / 2 + 55);
   let songBoxH = 72;
-  for (let i=0;i<SONGS.length;i++) {
-    fill(SONGS[i].color); stroke(180,130,180,100); strokeWeight(2);
-    rect(width/2-158, height/2-65 + i*songBoxH, 316, songBoxH-10, 18);
-    noStroke();fill(65,20,60); textSize(26);
-    text(SONGS[i].name, width/2, height/2-65 + i*songBoxH + (songBoxH-10)/2);
+  for (let i = 0; i < SONGS.length; i++) {
+    fill(SONGS[i].color);
+    stroke(180, 130, 180, 100);
+    strokeWeight(2);
+    rect(
+      width / 2 - 158,
+      height / 2 - 65 + i * songBoxH,
+      316,
+      songBoxH - 10,
+      18
+    );
+    noStroke();
+    fill(65, 20, 60);
+    textSize(26);
+    text(
+      SONGS[i].name,
+      width / 2,
+      height / 2 - 65 + i * songBoxH + (songBoxH - 10) / 2
+    );
   }
-  fill(80,60,130,92); noStroke();
-  textSize(15); text('ESC to close',width/2,height/2+modalH/2-34);
+  fill(80, 60, 130, 92);
+  noStroke();
+  textSize(15);
+  text("ESC to close", width / 2, height / 2 + modalH / 2 - 34);
 }
 function drawWishesModal() {
-  fill(220,210,245,238); rect(0,0,width,height);
-  fill(70,20,30,220); stroke(170,120,210,85); strokeWeight(3);
-  rect(width/2-242,height/2-72,484,136,24);
-  noStroke(); fill(55,27,50); textAlign(CENTER,CENTER); textSize(25);
-  text('Type your birthday wish below! (ENTER to send!)',width/2,height/2-44);
-  fill(240,250,220); stroke(160,150,205,80); rect(width/2-130,height/2+8,260,48,13);
-  noStroke(); textAlign(CENTER,CENTER); textSize(22);
+  fill(220, 210, 245, 238);
+  rect(0, 0, width, height);
+  fill(70, 20, 30, 220);
+  stroke(170, 120, 210, 85);
+  strokeWeight(3);
+  rect(width / 2 - 242, height / 2 - 72, 484, 136, 24);
+  noStroke();
+  fill(55, 27, 50);
+  textAlign(CENTER, CENTER);
+  textSize(25);
+  text(
+    "Type your birthday wish below! (ENTER to send!)",
+    width / 2,
+    height / 2 - 44
+  );
+  fill(240, 250, 220);
+  stroke(160, 150, 205, 80);
+  rect(width / 2 - 130, height / 2 + 8, 260, 48, 13);
+  noStroke();
+  textAlign(CENTER, CENTER);
+  textSize(22);
   // Wish input
-  if(wishesInput.length === 0 && wishesPlaceholder) {
-    let fadeVal = 160 + 70 * Math.abs(Math.sin(millis()/450));
-    fill(120,122,185,fadeVal);
-    text('Write your wishes', width/2, height/2+33);
+  if (wishesInput.length === 0 && wishesPlaceholder) {
+    let fadeVal = 160 + 70 * Math.abs(Math.sin(millis() / 450));
+    fill(120, 122, 185, fadeVal);
+    text("Write your wishes", width / 2, height / 2 + 33);
   } else {
-    fill(40,20,55);
-    text(wishesInput || ' ', width/2, height/2+33);
+    fill(40, 20, 55);
+    text(wishesInput || " ", width / 2, height / 2 + 33);
   }
   // Textbox click/focus for mobile
-  if(mouseIsPressed && mouseY>height/2+8 && mouseY<height/2+56) {
+  if (mouseIsPressed && mouseY > height / 2 + 8 && mouseY < height / 2 + 56) {
     wishesPlaceholder = false;
   }
   // Back button below field
-  let btnW=110, btnH=38, btnX=width/2-btnW/2, btnY=height/2+55;
-  fill(190,160,214,215); stroke(128,74,160,150); strokeWeight(2);
-  rect(btnX,btnY,btnW,btnH,11);
-  noStroke(); fill(255); textSize(20);
-  text('Back', width/2, btnY+btnH/2+2);
+  let btnW = 110,
+    btnH = 38,
+    btnX = width / 2 - btnW / 2,
+    btnY = height / 2 + 55;
+  fill(190, 160, 214, 215);
+  stroke(128, 74, 160, 150);
+  strokeWeight(2);
+  rect(btnX, btnY, btnW, btnH, 11);
+  noStroke();
+  fill(255);
+  textSize(20);
+  text("Back", width / 2, btnY + btnH / 2 + 2);
   // Hint
-  textSize(14); fill(90,27,55); text('(ESC or Back closes)',width/2,btnY+btnH+20);
-  if(mouseIsPressed && mouseX>btnX && mouseX<btnX+btnW && mouseY>btnY && mouseY<btnY+btnH && wishesModalOn) {
-    wishesModalOn = false; wishesInput=''; wishesPlaceholder=true;
+  textSize(14);
+  fill(90, 27, 55);
+  text("(ESC or Back closes)", width / 2, btnY + btnH + 20);
+  if (
+    mouseIsPressed &&
+    mouseX > btnX &&
+    mouseX < btnX + btnW &&
+    mouseY > btnY &&
+    mouseY < btnY + btnH &&
+    wishesModalOn
+  ) {
+    wishesModalOn = false;
+    wishesInput = "";
+    wishesPlaceholder = true;
   }
 }
 function keyTyped() {
-  if(wishesModalOn) {
-    if(wishesPlaceholder) wishesPlaceholder = false;
-    if (keyCode===ENTER) {
-      if(wishesInput.trim().length>0) {
-        window.open('https://wa.me/211917854654?text=' + encodeURIComponent(wishesInput), '_blank');
+  if (wishesModalOn) {
+    if (wishesPlaceholder) wishesPlaceholder = false;
+    if (keyCode === ENTER) {
+      if (wishesInput.trim().length > 0) {
+        window.open(
+          "https://wa.me/211917854654?text=" + encodeURIComponent(wishesInput),
+          "_blank"
+        );
       }
-      wishesModalOn=false; wishesInput=''; wishesPlaceholder=true; return false;
+      wishesModalOn = false;
+      wishesInput = "";
+      wishesPlaceholder = true;
+      return false;
     }
-    if(keyCode===BACKSPACE) wishesInput=wishesInput.slice(0,-1);
-    else if(key.length===1 && wishesInput.length<80) wishesInput+=key;
+    if (keyCode === BACKSPACE) wishesInput = wishesInput.slice(0, -1);
+    else if (key.length === 1 && wishesInput.length < 80) wishesInput += key;
     return false;
   }
 }
